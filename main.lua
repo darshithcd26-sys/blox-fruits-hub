@@ -78,7 +78,7 @@ FruitCorner.CornerRadius = UDim.new(0, 4)
 FruitCorner.Parent = FruitBtn
 
 -- ═══════════════════════════════════════════════════════════════
--- HARDENED AUTO FARM
+-- HARDENED AUTO FARM (BodyVelocity Movement)
 -- ═══════════════════════════════════════════════════════════════
 local isFarming = false
 local farmThread = nil
@@ -112,9 +112,19 @@ local function attackEnemy(enemy)
     local enemyHRP = enemy:FindFirstChild("HumanoidRootPart")
     if not enemyHRP then return end
 
-    -- Direct CFrame teleport (bypasses TweenService restrictions)
-    hrp.CFrame = CFrame.new(enemyHRP.Position + Vector3.new(0, 3, 0))
-    task.wait(0.05)
+    -- Calculate direction and distance
+    local direction = (enemyHRP.Position - hrp.Position).Unit
+    local distance = (enemyHRP.Position - hrp.Position).Magnitude
+
+    -- Push character toward enemy using physics velocity
+    if distance > 5 then
+        local bv = Instance.new("BodyVelocity")
+        bv.Velocity = direction * 50
+        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bv.Parent = hrp
+        task.wait(0.15)
+        bv:Destroy()
+    end
 
     -- Attack via equipped tool
     local tool = character:FindFirstChildOfClass("Tool")
@@ -122,19 +132,19 @@ local function attackEnemy(enemy)
         tool:Activate()
     end
 
-    -- Fallback: Force a physical click in case of fighting style
+    -- Fallback: Force a physical click
     local VirtualUser = game:GetService("VirtualUser")
     VirtualUser:Button1Down(Vector2.new(0, 0))
     VirtualUser:Button1Up(Vector2.new(0, 0))
 
-    task.wait(0.1) -- Attack cooldown
+    task.wait(0.1)
 end
 
 local function farmLoop()
     while isFarming do
         local enemy = getNearestEnemy()
         if enemy then
-            pcall(attackEnemy, enemy) -- pcall prevents crashing if the mob dies mid-tween
+            pcall(attackEnemy, enemy)
         else
             task.wait(0.5)
         end
@@ -163,7 +173,6 @@ AutoFarmBtn.MouseButton1Click:Connect(function()
 end)
 
 FruitBtn.MouseButton1Click:Connect(function()
-    -- Placeholder
     FruitBtn.Text = "Fruit Sniper: SOON"
     task.wait(1)
     FruitBtn.Text = "Fruit Sniper: OFF"
