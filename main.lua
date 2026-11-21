@@ -1,16 +1,12 @@
 -- language: Lua, target: Blox Fruits (Roblox)
--- host: https://raw.githubusercontent.com/darshithcd26-sys/blox-fruits-hub/refs/heads/main/main.lua
-
-if game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("VoidHubUI") then 
-    game.Players.LocalPlayer.PlayerGui.VoidHubUI:Destroy() 
-end
+if game.CoreGui:FindFirstChild("VoidHubUI") then game.CoreGui.VoidHubUI:Destroy() end
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 -- ═══════════════════════════════════════════════════════════════
--- UI CONSTRUCTION (TRANSPARENT BLACK/WHITE)
+-- UI CONSTRUCTION
 -- ═══════════════════════════════════════════════════════════════
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "VoidHubUI"
@@ -33,7 +29,6 @@ UICorner.Parent = MainFrame
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 40)
-Title.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "VOID HUB | Blox Fruits"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -41,22 +36,17 @@ Title.Font = Enum.Font.GothamBold
 Title.TextSize = 14
 Title.Parent = MainFrame
 
--- Exit Button
 local ExitBtn = Instance.new("TextButton")
 ExitBtn.Size = UDim2.new(0, 30, 0, 30)
 ExitBtn.Position = UDim2.new(1, -35, 0, 5)
-ExitBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ExitBtn.BackgroundTransparency = 1
 ExitBtn.Text = "X"
 ExitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ExitBtn.Font = Enum.Font.GothamBold
 ExitBtn.TextSize = 14
 ExitBtn.Parent = MainFrame
-ExitBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
+ExitBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- Auto Farm Button
 local AutoFarmBtn = Instance.new("TextButton")
 AutoFarmBtn.Size = UDim2.new(0.9, 0, 0, 35)
 AutoFarmBtn.Position = UDim2.new(0.05, 0, 0, 50)
@@ -72,7 +62,6 @@ local AutoFarmCorner = Instance.new("UICorner")
 AutoFarmCorner.CornerRadius = UDim.new(0, 4)
 AutoFarmCorner.Parent = AutoFarmBtn
 
--- Fruit Sniper Button
 local FruitBtn = Instance.new("TextButton")
 FruitBtn.Size = UDim2.new(0.9, 0, 0, 35)
 FruitBtn.Position = UDim2.new(0.05, 0, 0, 95)
@@ -89,7 +78,7 @@ FruitCorner.CornerRadius = UDim.new(0, 4)
 FruitCorner.Parent = FruitBtn
 
 -- ═══════════════════════════════════════════════════════════════
--- AUTO FARM MECHANISM
+-- HARDENED AUTO FARM
 -- ═══════════════════════════════════════════════════════════════
 local isFarming = false
 local farmThread = nil
@@ -119,36 +108,33 @@ end
 local function attackEnemy(enemy)
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    
-    -- Find equipped tool (sword, gun, or fruit)
-    local tool = character:FindFirstChildOfClass("Tool")
-    
-    -- Tween to enemy
     local hrp = character.HumanoidRootPart
-    local targetPos = enemy.HumanoidRootPart.Position
-    local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos + Vector3.new(0, 5, 0))})
-    tween:Play()
-    tween.Completed:Wait()
+    local enemyHRP = enemy:FindFirstChild("HumanoidRootPart")
+    if not enemyHRP then return end
 
-    -- Attack if tool is equipped
+    -- Direct CFrame teleport (bypasses TweenService restrictions)
+    hrp.CFrame = CFrame.new(enemyHRP.Position + Vector3.new(0, 3, 0))
+    task.wait(0.05)
+
+    -- Attack via equipped tool
+    local tool = character:FindFirstChildOfClass("Tool")
     if tool then
         tool:Activate()
-        task.wait(0.15) -- Small delay between swings
-    else
-        -- fallback: if using fighting style, fire click
-        local virtualUser = game:GetService("VirtualUser")
-        virtualUser:Button1Down(Vector2.new(0,0))
-        virtualUser:Button1Up(Vector2.new(0,0))
-        task.wait(0.15)
     end
+
+    -- Fallback: Force a physical click in case of fighting style
+    local VirtualUser = game:GetService("VirtualUser")
+    VirtualUser:Button1Down(Vector2.new(0, 0))
+    VirtualUser:Button1Up(Vector2.new(0, 0))
+
+    task.wait(0.1) -- Attack cooldown
 end
 
 local function farmLoop()
     while isFarming do
         local enemy = getNearestEnemy()
         if enemy then
-            attackEnemy(enemy)
+            pcall(attackEnemy, enemy) -- pcall prevents crashing if the mob dies mid-tween
         else
             task.wait(0.5)
         end
@@ -177,6 +163,7 @@ AutoFarmBtn.MouseButton1Click:Connect(function()
 end)
 
 FruitBtn.MouseButton1Click:Connect(function()
+    -- Placeholder
     FruitBtn.Text = "Fruit Sniper: SOON"
     task.wait(1)
     FruitBtn.Text = "Fruit Sniper: OFF"
