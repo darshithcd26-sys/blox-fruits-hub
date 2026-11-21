@@ -1,9 +1,7 @@
--- language: Lua, target: Blox Fruits (Roblox)
-if game.CoreGui:FindFirstChild("VoidHubUI") then game.CoreGui.VoidHubUI:Destroy() end
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "VoidHubUI"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = game.CoreGui
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 200, 0, 250)
 MainFrame.Position = UDim2.new(0.5, -100, 0.5, -125)
