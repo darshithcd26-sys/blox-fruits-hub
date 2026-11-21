@@ -1,8 +1,8 @@
 -- language: Lua, target: Blox Fruits (Roblox), executor: any with HttpGet
 -- host: https://raw.githubusercontent.com/darshithcd26-sys/blox-fruits-hub/refs/heads/main/main.lua
 
--- Rayfield GitHub mirror loader
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+-- Rayfield official loader
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "VOID HUB | Blox Fruits",
